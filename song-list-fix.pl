@@ -132,12 +132,7 @@ $count = 0;
 foreach $mykey (sort keys(%artist_lk)) {
 
     $found = false;
-#    $tmpStr = $artist_lk{$mykey};
-#    $tmpStr =~ s|/|\\/|g;
-#    $tmpStr =~ s|\(|\\\(|g;
-#    $tmpStr =~ s|\)|\\\)|g;
-#    $tmpStr =~ s|$|\$|g;
-                        
+     
     foreach (@artistDb) {
         chomp($_);
         
