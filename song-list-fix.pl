@@ -17,6 +17,7 @@ use constant true  => 1;
 my $fout = "test.csv";
 my $artist_out = "artists.txt";
 my $artist_db = "artists.db";
+my $sql_out = "songlist.sql";
 
 GetOptions (
     "i|input=s"   	=> \$filename,
@@ -24,7 +25,6 @@ GetOptions (
     "a|artist=s"    => \$artist_out,
     "s|search=s"    => \$search
 );
-
 
 sub clean_string {
 
@@ -40,7 +40,7 @@ sub clean_string {
     $str =~ s/_$//g;
     $str =~ s/Wvocal//g;
     $str =~ s/\&/and/g;
-    
+    $str =~ s/Christiina/Christina/g;
     return $str;
     
 } #sub clean_string
@@ -50,16 +50,6 @@ sub clean_vocal {
     my $str = shift(@_);
     
     $str =~ s/^"//g;
-    $str =~ s/W Vocal//g;
-    $str =~ s/W-Vocal//g;
-    $str =~ s/\Vocals//g;
-    $str =~ s/\(Vocal\)//g;
-    $str =~ s/With Vocal//g;
-    $str =~ s/\(Non Vocal\)//g;
-    $str =~ s/\(Vocal Version\)//g;
-    $str =~ s/\(Vocal Track\)//g;
-    $str =~ s/\(\)//g;
-    
     return $str;
     
 } #sub clean_vocal
@@ -67,6 +57,7 @@ sub clean_vocal {
 open($fh, "<", $filename) or die "Unable to open $filename for output\n";
 open($ao, ">", $artist_out) or die "Unable to open $artist_out for output\n";
 open($oh, ">", $fout) or die "Unable to open $fout for output\n";
+open($sqlo, ">", $sql_out) or die "Unable to open $fout for output\n";
 
 #
 # Load artist db
@@ -79,9 +70,7 @@ close $DB;
 
 while( my $line = <$fh> ) {
 
-    if ( $line =~ "Vcl") { next; }
-    if ( $line =~ "Mpx") { next; }
-    if ( $line =~ "Wvocal") { next; }
+    if ( $line =~ m/Vcl|Mpx|Wvocal|W Vocal|W-Vocal|Vocals|\(Vocal\)|\(Vocals\)| With Vocal|\(Vocal Version\)|\(Vocal Track\)|Wvoca|Wvoc|\(Voc\)|wvocal/) { next; }
     $line = clean_vocal($line);
 
     @data = split(/","/, $line);
@@ -90,8 +79,8 @@ while( my $line = <$fh> ) {
     $str =~ s/  / /g;
     $str =~ s/^\s+|\s+$//g;
     $str =~ s/\ and\ /\ \&\ /g;
-    if ( $str =~ /^the/i ) {
-        $str =~ s/^the//i;
+    if ( $str =~ /^the /i ) {
+        $str =~ s/^the //i;
         $str = $str . ", The";
     }
     $artistName = $str;
@@ -115,13 +104,11 @@ while( my $line = <$fh> ) {
     if ( $tmpTitle eq "Vocal" ) { next; }
     
     $key = $tmpArtist . "_" . $tmpTitle;
-
     
     $artist_lk{$key} = $artistName;
     $title_lk{$key} = $titleName;
     $artistArray{$tmpArtist} = $artistName;
 
-    
 }
 
 foreach $mykey (sort keys(%artistArray)) {
@@ -129,6 +116,8 @@ foreach $mykey (sort keys(%artistArray)) {
 }
 
 $count = 0;
+print $sqlo "DELETE FROM songlist;\n\n";
+
 foreach $mykey (sort keys(%artist_lk)) {
 
     $found = false;
@@ -150,9 +139,16 @@ foreach $mykey (sort keys(%artist_lk)) {
     }
     
     print $oh $artist_lk{$mykey} . "|" . $title_lk{$mykey} . "\n";
+    
+    $artist_lk{$mykey} =~ s/\'/\'\'/g;
+    $title_lk{$mykey}  =~ s/\'/\'\'/g;
+    
+    print $sqlo "INSERT INTO songlist (artist, title) VALUES ('$artist_lk{$mykey}', '$title_lk{$mykey}');\n";
+    
     if ( $artist_lk{$mykey} =~ /$search/ && $search ne '' ) {
         #print $oh $search . " - " . $mykey . " : " . $artist_lk{$mykey} . " " . $title_lk{$mykey} . "\n";
     }
+
 }
 
 print "Not found: " . $count . "\n";
