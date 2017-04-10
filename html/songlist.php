@@ -52,36 +52,24 @@ foreach (range('A', 'Z') as $char) {
 echo "<br><hr>";
 
 if( $qtype == "search" ) {
-    // select artist, title, concat(artist,' ',title) AS rstr from songlist where concat(artist,' ',title) LIKE '%ZZ%';
     
     if ( $search_terms > 1 ) {
         $loop_count = 0;
         foreach ( $search_array as $item ) {
             if( $loop_count < 1 ) {
-                $wStr = " artist LIKE '%" . $item . "%'";
+                $wStr = " concat(artist,' ',title) LIKE '%" . $item . "%'";
                 $loop_count = 1;
             }
             else {
-                $wStr = $wStr . " AND artist LIKE '%" . $item . "%'";
+                $wStr = $wStr . " AND concat(artist,' ',title) LIKE '%" . $item . "%'";
             }
         }
-        
-        $wStr = $wStr . " OR";
-        
-        $loop_count = 0;
-        foreach ( $search_array as $item ) {
-            if( $loop_count < 1 ) {
-                $wStr = " title LIKE '%" . $item . "%'";
-                $loop_count = 1;
-            }
-            else {
-                $wStr = $wStr . " AND title LIKE '%" . $item . "%'";
-            }
-        }
+       
         $SQL = "SELECT artist, title FROM songlist WHERE " . $wStr;
+
     }
     else {
-        $SQL = "SELECT artist, title FROM songlist WHERE artist LIKE '%" . $sstring . "%' OR title LIKE '%" . $sstring . "%'";;
+        $SQL = "SELECT artist, title FROM songlist WHERE concat(artist,' ',title) LIKE '%" . $sstring . "%'";
     }
 
 }
