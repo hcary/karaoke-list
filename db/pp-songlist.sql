@@ -1,7 +1,7 @@
 CREATE DATABASE `pp-songlist`;
 
 
-CREATE USER 'pp_ui_user'@'%'  IDENTIFIED BY 'l1f3s a l0ng s0ng';
+CREATE USER 'pp_ui_user'@'%'  IDENTIFIED BY '';
 GRANT ALL ON `pp-songlist`.* TO 'pp_ui_user'@'%';
 
 
